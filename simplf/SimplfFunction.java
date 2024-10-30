@@ -1,6 +1,7 @@
 package simplf;
 
 import java.util.List;
+import java.util.Iterator;
 
 class SimplfFunction implements SimplfCallable {
     final Stmt.Function declaration;
@@ -19,14 +20,17 @@ class SimplfFunction implements SimplfCallable {
         Environment environment = new Environment (closure);
 
 
-        for (int i = 0; i < declaration.params.size(); i++) {
-        Token param =
-        declaration.params.get(i);
-        Object arg= args.get(i);
-        environment = environment.define(param, param. lexeme, arg);
-        }
-        return interpreter.executeBlock (declaration.body, environment);
-        }
+        Iterator<Token> paramIterator = declaration.params.iterator();
+        Iterator<Object> argIterator = args.iterator();
+
+        while (paramIterator.hasNext() && argIterator.hasNext()) {
+        Token param = paramIterator.next();
+        Object arg = argIterator.next();
+        environment = environment.define(param, param.lexeme, arg);
+    }
+
+    return interpreter.executeBlock(declaration.body, environment);
+}
         @Override
         public String toString() {
         return "<fn "+ declaration.name.lexeme + ">";

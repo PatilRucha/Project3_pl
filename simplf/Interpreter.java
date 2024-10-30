@@ -40,10 +40,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
 
     @Override
     public Object visitVarStmt(Stmt.Var stmt) {
-        Object value = null;
-        if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer);
-        }
+        Object value = (stmt.initializer != null) ? evaluate(stmt.initializer) : null;
         environment = environment.define(stmt.name, stmt.name.lexeme, value);
         return value;
     }
@@ -86,10 +83,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
 
     @Override
     public Object visitWhileStmt(Stmt.While stmt) {
-        while (isTruthy(evaluate(stmt.cond))) {
-            execute(stmt.body); 
-        }
-        return null; 
+        do {
+        execute(stmt.body);
+    } while (isTruthy(evaluate(stmt.cond)));
+    return null; 
     }
 
     @Override
@@ -203,22 +200,22 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
         Object callee = evaluate(expr.callee);
 
         if (!(callee instanceof SimplfCallable)) {
-            throw new RuntimeError(expr.paren, "Can only call functions.");
-        }
+        throw new RuntimeError(expr.paren, "Can only call functions.");
+    }
 
-        List<Object> arguments = new ArrayList<>();
-        for (Expr argument : expr.args) {
-            arguments.add(evaluate(argument));
-        }
+    List<Object> arguments = new ArrayList<>();
+    for (int i = 0; i < expr.args.size(); i++) {
+        arguments.add(evaluate(expr.args.get(i)));
+    }
 
-        SimplfFunction function = (SimplfFunction)callee;
-        if (arguments.size() != function.declaration.params.size()) {
-            throw new RuntimeError(expr.paren, 
-                "Expected " + function.declaration.params.size() + 
-                " arguments but got " + arguments.size() + ".");
-        }
+    SimplfFunction function = (SimplfFunction) callee;
+    if (arguments.size() != function.declaration.params.size()) {
+        throw new RuntimeError(expr.paren,
+            "Expected " + function.declaration.params.size() +
+            " arguments but got " + arguments.size() + ".");
+    }
 
-        return function.call(this, arguments);
+    return function.call(this, arguments);
     }
 
     public Object evaluate(Expr expr) {

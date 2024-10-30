@@ -2,21 +2,21 @@ package simplf;
 
 class Environment {
     public AssocList assocList;
-    public final Environment outer;  
+    public final Environment enclosing;  
 
     Environment() {
         this.assocList = null;
-        this.outer = null;  
+        this.enclosing = null;  
     }
 
-    Environment(Environment outer) {
+    Environment(Environment enclosing) {
         this.assocList = null;
-        this.outer = outer;  
+        this.enclosing = enclosing;  
     }
 
-    Environment(AssocList assocList, Environment outer) {
+    Environment(AssocList assocList, Environment enclosing) {
         this.assocList = assocList;
-        this.outer = outer; 
+        this.enclosing = enclosing; 
     }
 
     Environment define(Token varToken, String name, Object value) {
@@ -26,14 +26,19 @@ class Environment {
     }
 
     void assign(Token name, Object value) {
-        for (Environment env = this; env != null; env = env.outer) {  
-            for (AssocList assoc = env.assocList; assoc != null; assoc = assoc.next) {
+        Environment env = this; 
+    // Traverse up the environment chain
+        while (env != null) {  
+            AssocList assoc = env.assocList; 
+            while (assoc != null) { 
                 if (assoc.name.equals(name.lexeme)) {
-                    assoc.value = value;
-                    return;
+                    assoc.value = value; 
+                    return; 
                 }
+                assoc = assoc.next;
             }
-        }
+            env = env.enclosing;
+    }
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'");
     }
 
@@ -44,8 +49,8 @@ class Environment {
             }
         }
 
-        if (this.outer != null) {
-            return this.outer.get(name);  
+        if (this.enclosing != null) {
+            return this.enclosing.get(name);  
         }
 
         throw new RuntimeException("Undefined variable '" + name.lexeme + "'");

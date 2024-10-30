@@ -87,16 +87,12 @@ public class Desugar implements Expr.Visitor<Expr>, Stmt.Visitor<Stmt> {
         body.add(new Stmt.Expression(stmt.init));  
     }
 
-    Stmt whileBody = stmt.body;
-
+    List<Stmt> whileBodyList = new ArrayList<>();
+    whileBodyList.add(stmt.body);  
     if (stmt.incr != null) {
-        List<Stmt> loopBodyWithIncrement = new ArrayList<>();
-        loopBodyWithIncrement.add(whileBody);  
-        loopBodyWithIncrement.add(new Stmt.Expression(stmt.incr));  
-        whileBody = new Stmt.Block(loopBodyWithIncrement);  
+        whileBodyList.add(new Stmt.Expression(stmt.incr));  
     }
-
-    Stmt whileLoop = new Stmt.While(stmt.cond, whileBody);
+    Stmt whileLoop = new Stmt.While(stmt.cond, new Stmt.Block(whileBodyList));
     body.add(whileLoop);
 
     return new Stmt.Block(body);
